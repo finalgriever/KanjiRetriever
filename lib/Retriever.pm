@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-package Kanji::Retriever;
+package Retriever;
 
 use strict;
 use LWP::UserAgent;
@@ -8,14 +8,16 @@ use Encode qw(decode encode);
 use Data::Dumper qw/Dumper/;
 use HTTP::Response;
 use utf8;
+use Log::Log4perl;
+Log::Log4perl->init("log.conf");
 
 sub new {
 	my ($class, $url) = @_;
 	my $doc;
 	my $self;
+	$self->{log} = Logging->new();
 
-	if($url)
-	{
+	if($url) {
 		$self = changeDoc($self, $url);
 	}
 

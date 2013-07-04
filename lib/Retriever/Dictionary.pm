@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-package Kanji::Retriever::Dictionary;
+package Retriever::Dictionary;
 
 use strict;
 use LWP::Simple;
@@ -7,7 +7,7 @@ use HTML::Parser;
 use Data::Dumper;
 use HTML::TreeBuilder 3;
 
-use base qw/Kanji::Retriever/;
+use base qw/Retriever/;
 
 use constant TABLE_CLASS => 'sortable wikitable jquery-tablesorter';
 
@@ -88,7 +88,7 @@ sub getReadings {
 	my $td = shift;
 
 	my $anchor = $td->find_by_tag_name("a");
-	my $retriever = Kanji::Retriever::new($anchor->attr("href"));
+	my $retriever = Retriever::new($anchor->attr("href"));
 
 	my $readings = getListItems($retriever, "Readings");
 
@@ -101,7 +101,7 @@ sub getCompounds {
 	my $td = shift;
 
 	my $anchor = $td->find_by_tag_name("a");
-	my $retriever = Kanji::Retriever::new($anchor->attr("href"));
+	my $retriever = Retriever::new($anchor->attr("href"));
 
 	my $compounds = getListItems($retriever, "Compounds");
 

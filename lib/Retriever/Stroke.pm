@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-package Kanji::Retriever::Stroke;
+package Retriever::Stroke;
 
 use strict;
 use LWP::Simple;
@@ -8,7 +8,7 @@ use Data::Dumper;
 use HTML::TreeBuilder 3;
 use Image::Grab qw/grab/;
 
-use base qw/Kanji::Retriever/;
+use base qw/Retriever/;
 use constant DIV_NAME => "stroke_diagram";
 
 sub getStrokeImage {
