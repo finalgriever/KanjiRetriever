@@ -26,26 +26,29 @@ sub processRows {
 	my @rows = @_;
 	my $dictionary;
 	my $count = 0;
+	my $logger = get_logger();
 
 	foreach(@rows) {
+		my @tds = $_->find_by_tag_name("td");
+		my $key = $tds[0]->as_text();
 		eval {
-			my @tds = $_->find_by_tag_name("td");
-			my $key = $tds[0]->as_text();
 			if (!$key) {
 				die "Failed to load unknown kanji";
 			}
 			$dictionary->[$key] = {};
 	
-			$dictionary->[$key]->{character} = getCharacter(   $tds[1]) || die "Could not retrieve kanji: $key\n"   ;
-			$dictionary->[$key]->{strokes}   = getNumStrokes(  $tds[4])                                             ;
-			$dictionary->[$key]->{grade}     = getGrade(       $tds[5])                                             ;
-			$dictionary->[$key]->{meaning}   = getMeaning(     $tds[7]) || die "Could not retireve meaning: $key\n" ;
-			$dictionary->[$key]->{readings}  = getReadings(    $tds[1]) || die "Could not retrieve readings: $key\n";
-			$dictionary->[$key]->{compounds} = getCompounds(   $tds[1])                                             ;
+			$dictionary->[$key]->{character} = getCharacter(   $tds[1]) or die "Could not retrieve kanji: $key\n";
+			$dictionary->[$key]->{meaning}   = getMeaning(     $tds[7]) or die "Could not retrieve meaning: $key\n";
+			$dictionary->[$key]->{readings}  = getReadings(    $tds[1]) or die "Could not retrieve readings: $key\n";
+			$dictionary->[$key]->{compounds} = getCompounds(   $tds[1]) or $logger->warn("Could not retrieve compounds for: $key");
+			$dictionary->[$key]->{strokes}   = getNumStrokes(  $tds[4]) or $logger->warn("Could not retrieve stroke count for :$key");
+			$dictionary->[$key]->{grade}     = getGrade(       $tds[5]) or $logger->warn("Could not retrieve grade for: $key");
 		};
 		if ($@) {
-			#TODO Sort out logging
+			delete $dictionary->[$key];
+			$logger->error("Failed dictionary entry, $key: $@");
 		}
+		$logger->info("Dictionary entry successful for Kanji: $key");
 	}
 
 	if($dictionary)

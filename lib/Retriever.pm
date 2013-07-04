@@ -8,7 +8,7 @@ use Encode qw(decode encode);
 use Data::Dumper qw/Dumper/;
 use HTTP::Response;
 use utf8;
-use Log::Log4perl;
+use Log::Log4perl qw(get_logger);
 Log::Log4perl->init("log.conf");
 
 sub new {
