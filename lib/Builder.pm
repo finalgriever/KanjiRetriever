@@ -3,7 +3,7 @@
 use Retriever::Stroke;
 use Retriever::Dictionary;
 use Log::Log4perl qw/get_logger/;
-use SQL;		# Need to check on this
+use DBI;		# Need to check on this
 Log::Log4perl->init("log.conf");
 
 use constant WIKTIONARY => 'http://en.wikipedia.org/wiki/List_of_j%C5%8Dy%C5%8D_kanji';
@@ -14,9 +14,10 @@ main();
 sub main {
 	my $dictionaryRetriever = Retriever::Dictionary->new(WIKTIONARY);
 	my $logger = get_logger;
+	my $dictionary;
 
 	eval {
-		my $dictioanary = $dictionaryRetriever->getDictionary();
+		$dictionary = $dictionaryRetriever->getDictionary();
 		$dictionaryRetriever->delete();
 	}
 	if ($@) {
@@ -27,6 +28,7 @@ sub main {
 	retrieveStrokeImages($dictionary);
 
 	# Start building your dang database
+	injectData($dictionary);
 }
 
 sub retrieveStrokeImages {
@@ -47,4 +49,10 @@ sub retrieveStrokeImages {
 		$entry->{strokeImage} = $strokeImage;
 		$strokeRetriever->delete();
 	}
+}
+
+sub injectData {
+	my $dictionary = shift;
+	my $oid;
+	my $dhb = DBI::new(
 }

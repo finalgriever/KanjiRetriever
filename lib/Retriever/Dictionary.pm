@@ -6,17 +6,17 @@ use LWP::Simple;
 use HTML::Parser;
 use Data::Dumper;
 use HTML::TreeBuilder 3;
+use Log::Log4perl qw(get_logger);
+Log::Log4perl->init("log.conf");
 
 use base qw/Retriever/;
-
-use constant TABLE_CLASS => 'sortable wikitable jquery-tablesorter';
 
 sub getDictionary {
 	my $self = shift;
 
 	my $dictionary;
-	my $table = $self->{doc}->find_by_attribute("class", TABLE_CLASS);
-	my @rows = $table->find_by_tag_name("tbody")->find_by_tag_name("tr");;
+	my $table = $self->{doc}->look_down("class", qr/wikitable/);
+	my @rows = $table->find_by_tag_name("tr");
 
 	return $self->processRows(@rows);
 }
@@ -25,11 +25,13 @@ sub processRows {
 	my $self = shift;
 	my @rows = @_;
 	my $dictionary;
-	my $count = 0;
 	my $logger = get_logger();
-
-	foreach(@rows) {
+	#shift @rows; #Getting rid of the heading row
+	my $count;
+	#foreach(1, 2, 3, 830, 1400) {
+	foreach (@rows) {
 		my @tds = $_->find_by_tag_name("td");
+		#my @tds = @rows[$_]->find_by_tag_name("td");
 		my $key = $tds[0]->as_text();
 		eval {
 			if (!$key) {
@@ -48,7 +50,9 @@ sub processRows {
 			delete $dictionary->[$key];
 			$logger->error("Failed dictionary entry, $key: $@");
 		}
+		else {
 		$logger->info("Dictionary entry successful for Kanji: $key");
+		}
 	}
 
 	if($dictionary)
@@ -60,7 +64,7 @@ sub processRows {
 	}
 }
 
-sub getCharacters {
+sub getCharacter {
 	my $td = shift;
 	my $character = $td->find_by_tag_name("a")->as_text();
 
@@ -91,7 +95,8 @@ sub getReadings {
 	my $td = shift;
 
 	my $anchor = $td->find_by_tag_name("a");
-	my $retriever = Retriever::new($anchor->attr("href"));
+	my $href = 'http:' . $anchor->attr("href");
+	my $retriever = Retriever->new($href);
 
 	my $readings = getListItems($retriever, "Readings");
 
@@ -104,7 +109,8 @@ sub getCompounds {
 	my $td = shift;
 
 	my $anchor = $td->find_by_tag_name("a");
-	my $retriever = Retriever::new($anchor->attr("href"));
+	my $href = 'http:' . $anchor->attr("href");
+	my $retriever = Retriever->new($href);
 
 	my $compounds = getListItems($retriever, "Compounds");
 
@@ -118,7 +124,7 @@ sub getListItems {
 	my $flag = 0;
 
 	# Get all the elements in the containing div, because it's the closest approximation to a colleciton we have
-	
+
 	my $div = $retriever->{doc}->find_by_attribute("id", "mw-content-text");
 	my @elements = $div->content_list;
 	
@@ -129,6 +135,7 @@ sub getListItems {
 			foreach my $item(@listItems) {              # And turn them all into text
 				push (@textList, $item->as_text());
 			}
+			if(@textList == []) {return undef;}
 			return \@textList;
 		}
 		else {

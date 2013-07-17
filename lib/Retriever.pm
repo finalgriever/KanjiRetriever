@@ -7,6 +7,7 @@ use HTML::Parser;
 use Encode qw(decode encode);
 use Data::Dumper qw/Dumper/;
 use HTTP::Response;
+use HTML::TreeBuilder;
 use utf8;
 use Log::Log4perl qw(get_logger);
 Log::Log4perl->init("log.conf");
@@ -15,7 +16,6 @@ sub new {
 	my ($class, $url) = @_;
 	my $doc;
 	my $self;
-	$self->{log} = Logging->new();
 
 	if($url) {
 		$self = changeDoc($self, $url);
